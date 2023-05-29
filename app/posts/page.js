@@ -1,7 +1,9 @@
 "use client"
 import {useEffect, useState} from "react";
 import {firestore} from "../firebase";
-import { collection, addDoc, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, updateDoc, doc, increment } from "firebase/firestore";
+import Post from "../components/post";
+
 export default function PostsIndex() {
     const [posts, setPosts] = useState([]);
 
@@ -18,15 +20,28 @@ export default function PostsIndex() {
         return () => unsubscribe();
     }, []);
 
+    function handleVote(id, upvote) {
+        const postsCollection = collection(firestore, 'posts');
+        const postDoc = doc(postsCollection, id);
+        updateDoc(postDoc, {
+            votes: upvote === 'upvote' ? increment(1) : increment(-1)
+        });
+    }
     return (
         <div className="container mx-auto px-4 py-8">
             <h2 className="text-2xl font-bold mb-4">Posts</h2>
             {posts.map(post => (
-                <div key={post.id} className="bg-white rounded shadow p-4 mb-4">
-                    <h3 className="text-lg font-bold mb-2 text-black">{post.title}</h3>
-                    <p className="text-gray-700">{post.content}</p>
-                </div>
+                <Post
+                    id={post.id}
+                    key={post.id}
+                    title={post.title}
+                    content={post.content}
+                    votes={post.votes}
+                    handleUpvote={() => handleVote(post.id, 'upvote')}
+                    handleDownvote={() => handleVote(post.id, 'downvote')}
+                />
             ))}
         </div>
     );
+
 }
