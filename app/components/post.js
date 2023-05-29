@@ -1,8 +1,17 @@
 import { useRouter } from 'next/navigation';
+import {collection, doc, increment, updateDoc} from "firebase/firestore";
+import {firestore} from "../firebase";
 
-const Post = ({ id, title, content, votes, handleUpvote, handleDownvote }) => {
+const Post = ({ id, title, content, votes}) => {
     const router = useRouter();
 
+    function handleVote(id, upvote) {
+        const postsCollection = collection(firestore, 'posts');
+        const postDoc = doc(postsCollection, id);
+        updateDoc(postDoc, {
+            votes: upvote === 'upvote' ? increment(1) : increment(-1)
+        });
+    }
     const handleClick = () => {
         router.push(`/posts/${id}`);
     };
@@ -16,7 +25,7 @@ const Post = ({ id, title, content, votes, handleUpvote, handleDownvote }) => {
                     className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2"
                     onClick={event => {
                         event.stopPropagation();
-                        handleUpvote();
+                        handleVote(id, 'upvote')
                     }}
                 >
                     Upvote
@@ -25,7 +34,7 @@ const Post = ({ id, title, content, votes, handleUpvote, handleDownvote }) => {
                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
                     onClick={event => {
                         event.stopPropagation();
-                        handleDownvote();
+                        handleVote(id, 'downvote')
                     }}
                 >
                     Downvote
